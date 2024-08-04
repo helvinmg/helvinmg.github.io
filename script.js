@@ -12,6 +12,7 @@ async function fetchCSVData() {
 
     if (!response.ok) {
         throw new Error('Network response was not ok');
+        console.log("Failed Fetching")
     }
 
     const csv = await response.text();
@@ -19,7 +20,7 @@ async function fetchCSVData() {
 }
 
 function parseCSV(csv) {
-    const lines = csv.split('\n').map(line => line.split(','));
+    const lines = csv.split('\n').map(line => line.split(',')).filter(row => row.length > 1);
     return lines;
 }
 
