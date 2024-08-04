@@ -39,13 +39,42 @@ function createTableBody(rowData) {
     tableBody.innerHTML = '';
     rowData.forEach(row => {
         const tr = document.createElement('tr');
-        row.forEach(cell => {
+        row.forEach((cell, index) => {
             const td = document.createElement('td');
-            td.textContent = cell;
+            if (!cell) {
+                td.textContent = 'NA';
+            } else if (index === 4) { 
+                const link = document.createElement('a');
+                link.href = cell;
+                link.textContent = cell;
+                link.target = '_blank';
+                td.appendChild(link);
+            } else if (index === 5) { 
+                const button = document.createElement('button');
+                button.textContent = 'View';
+                button.className = 'btn btn-primary';
+                button.onclick = () => showImage(cell);
+                td.appendChild(button);
+            } else {
+                td.textContent = cell;
+            }
             tr.appendChild(td);
         });
         tableBody.appendChild(tr);
     });
+}
+
+function showImage(url) {
+    const modalImage = document.getElementById('modalImage');
+    modalImage.src = url;
+    $('#imageModal').modal('show');
+}
+
+
+function showImage(url) {
+    const modalImage = document.getElementById('modalImage');
+    modalImage.src = url;
+    $('#imageModal').modal('show');
 }
 
 async function loadTable() {
