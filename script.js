@@ -1,8 +1,10 @@
-async function fetchCSVData() {
-    const repoOwner = 'helvinmg';
-    const repoName = 'wayanadpromisedata';
-    const filePath = 'promisedata.csv';
-    const apiUrl = `https://api.github.com/repos/${repoOwner}/${repoName}/contents/${filePath}`;
+async function fetchData() {
+    const repoOwner = 'keralarehab';
+    const repoName = 'keralarehab';
+    const filePath = 'incidents/wayanad-landslide-2024/data/promise.json';
+    const branch = 'initial_template';
+    const apiUrl = `https://api.github.com/repos/${repoOwner}/${repoName}/contents/${filePath}?ref=${branch}`;
+
 
     const response = await fetch(apiUrl, {
         headers: {
@@ -11,55 +13,90 @@ async function fetchCSVData() {
     });
 
     if (!response.ok) {
+        console.log(apiUrl);
+        console.log("Response error occured");
         throw new Error('Network response was not ok');
-        console.log("Failed Fetching")
+        
     }
 
-    const csv = await response.text();
-    return csv;
+    const jsonData = await response.json();
+    return jsonData;
 }
 
-function parseCSV(csv) {
-    const lines = csv.split('\n').map(line => line.split(',')).filter(row => row.length > 1);
-    return lines;
-}
+// function parseCSV(csv) {
+//     const lines = csv.split('\n').map(line => line.split(',')).filter(row => row.length > 1);
+//     return lines;
+// }
 
-function createTableHeader(headerData) {
-    const tableHeader = document.getElementById('table-header');
-    tableHeader.innerHTML = '';
-    headerData.forEach(header => {
-        const th = document.createElement('th');
-        th.textContent = header;
-        tableHeader.appendChild(th);
-    });
-}
+// function createTableHeader(headerData) {
+//     const tableHeader = document.getElementById('table-header');
+//     tableHeader.innerHTML = '';
+//     headerData.forEach(header => {
+//         const th = document.createElement('th');
+//         th.textContent = header;
+//         tableHeader.appendChild(th);
+//     });
+// }
 
-function createTableBody(rowData) {
+function createTableBody(data) {
+    const fileUrl='https://github.com/keralarehab/keralarehab/blob/initial_template/incidents/wayanad-landslide-2024/';
     const tableBody = document.getElementById('table-body');
     tableBody.innerHTML = '';
-    rowData.forEach(row => {
+    data.forEach((item, index) => {
         const tr = document.createElement('tr');
-        row.forEach((cell, index) => {
-            const td = document.createElement('td');
-            if (!cell) {
-                td.textContent = 'NA';
-            } else if (index === 4) { 
-                const link = document.createElement('a');
-                link.href = cell;
-                link.textContent = cell;
-                link.target = '_blank';
-                td.appendChild(link);
-            } else if (index === 5) { 
-                const button = document.createElement('button');
-                button.textContent = 'View';
-                button.className = 'btn btn-primary';
-                button.onclick = () => showImage(cell);
-                td.appendChild(button);
-            } else {
-                td.textContent = cell;
-            }
-            tr.appendChild(td);
-        });
+        
+        const tdSlNo = document.createElement('td');
+        tdSlNo.textContent = index + 1;
+        tr.appendChild(tdSlNo);
+
+        const tdPromise = document.createElement('td');
+        tdPromise.textContent = item.promise || 'NA';
+        tr.appendChild(tdPromise);
+
+        const tdPromiser = document.createElement('td');
+        tdPromiser.textContent = item.promisor || 'NA';
+        tr.appendChild(tdPromiser);
+
+        const tdDateOfPromise = document.createElement('td');
+        tdDateOfPromise.textContent = item.date_of_promise || 'NA';
+        tr.appendChild(tdDateOfPromise);
+
+        const tdMedia = document.createElement('td');
+        if (item.media) {
+            const button = document.createElement('button');
+            button.textContent = 'View';
+            button.className = 'btn btn-primary';
+            button.onclick = () => showImage(item.media);
+            tdMedia.appendChild(button);
+        } else {
+            tdMedia.textContent = 'NA';
+        }
+        tr.appendChild(tdMedia);
+
+        const tdDetails = document.createElement('td');
+        if (item.offers && item.offers.length > 0) {
+            const link = document.createElement('a');
+            link.href = fileUrl+item.offers[0].offer;
+            link.textContent = 'Details';
+            link.target = '_blank';
+            tdDetails.appendChild(link);
+        } else {
+            tdDetails.textContent = 'NA';
+        }
+        tr.appendChild(tdDetails);
+
+        const tdProgress = document.createElement('td');
+        if (item.offers && item.offers.length > 0) {
+            const link = document.createElement('a');
+            link.href = fileUrl+item.offers[0].progress;
+            link.textContent = 'Progress';
+            link.target = '_blank';
+            tdProgress.appendChild(link);
+        } else {
+            tdProgress.textContent = 'NA';
+        }
+        tr.appendChild(tdProgress);
+
         tableBody.appendChild(tr);
     });
 }
@@ -79,11 +116,9 @@ function showImage(url) {
 
 async function loadTable() {
     try {
-        const csv = await fetchCSVData();
-        const data = parseCSV(csv);
+        const data = await fetchData();
         if (data && data.length > 0) {
-            createTableHeader(data[0]);
-            createTableBody(data.slice(1));
+            createTableBody(data);
         }
     } catch (error) {
         console.error('Error fetching data:', error);
